@@ -46,7 +46,7 @@ pub trait Repository<'a, T> where T: Deserialize<'a> + Serialize + Debug + Clone
   async fn get(&self, id: Id) -> Option<T>;
 
   /// Sets a user in the database
-  async fn create(&self, user: T) -> Result<(), CreateRecordError>;
+  async fn create(&self, user: T) -> Result<T, CreateRecordError>;
   async fn update(&self, user: T) -> Result<(), UpdateRecordError>;
 
   /// Deletes a user from the database
@@ -57,12 +57,12 @@ pub trait Repository<'a, T> where T: Deserialize<'a> + Serialize + Debug + Clone
 }
 
 
-pub struct JsonDb {
+pub struct UserJsonRepo {
   file_name: String,
 }
 
 
-impl JsonDb {
+impl UserJsonRepo {
   pub fn new(file_name: &str) -> Self {
     if !file_name.ends_with(".json") {
       panic!("Should be a JSON file!");
@@ -75,12 +75,20 @@ impl JsonDb {
 }
 
 
-pub struct AppState<'a> {
-  pub user_repo: dyn Repository<'a, User>,
+pub struct AppState {
+  pub user_repo: UserJsonRepo,
+}
+
+impl AppState {
+  pub fn new() -> Self {
+    AppState {
+      user_repo: UserJsonRepo::new("users.json")
+    }
+  }
 }
 
 
-impl<'a> Repository<'a, User> for JsonDb {
+impl<'a> Repository<'a, User> for UserJsonRepo {
   async fn get(&self, user_id: Id) -> Option<User> {
     let users = self.get_all().await;
 
@@ -90,11 +98,11 @@ impl<'a> Repository<'a, User> for JsonDb {
     }
   }
 
-  async fn create(&self, user: User) -> Result<(), CreateRecordError> {
+  async fn create(&self, user: User) -> Result<User, CreateRecordError> {
     let mut users: Vec<User> = self.get_all().await;
 
     if let None = users.iter_mut().find(|u| u.id == user.id) {
-      users.push(user);
+      users.push(user.clone());
     } else {
       return Err(CreateRecordError::AlreadyExists);
     }
@@ -105,7 +113,7 @@ impl<'a> Repository<'a, User> for JsonDb {
       return Err(CreateRecordError::IoError);
     }
 
-    Ok(())
+    Ok(user)
   }
 
   async fn update(&self, user: User) -> Result<(), UpdateRecordError> {
@@ -131,6 +139,8 @@ impl<'a> Repository<'a, User> for JsonDb {
   }
 
   async fn get_all(&self) -> Vec<User> {
-    todo!()
+    let file = fs::read_to_string(&self.file_name).expect("Should be good :)");
+    let json: Vec<User> = serde_json::from_str(&file).expect("Should be fine again :)");
+    json
   }
 }

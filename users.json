@@ -1,17 +1,1 @@
-[
-  {
-    "id": 1,
-    "name": "Mori",
-    "age": 20
-  },
-  {
-    "id": 2,
-    "name": "Henrik",
-    "age": 22
-  },
-  {
-    "id": 3,
-    "name": "Lars-Andre",
-    "age": 20
-  }
-]
+[{"id":1,"name":"Mori","age":20},{"id":2,"name":"Henrik","age":22},{"id":3,"name":"Lars-Andre","age":20},{"id":5,"name":"Dr. Buzcek","age":20},{"id":6,"name":"Pc","age":999},{"id":10,"name":"Morille","age":999}]
