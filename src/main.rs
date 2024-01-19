@@ -1,10 +1,9 @@
 use std::fs;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use serde::{Deserialize, Serialize};
-use crate::db::{AppState, Db, JsonDb, User, UserId};
+use crate::db::{AppState, Db, JsonDb, SetRecordError, SetRecordResponse, User, UserId};
 
 pub mod db;
-
 
 
 #[actix_web::main]
@@ -30,7 +29,7 @@ async fn hello() -> impl Responder {
 #[get("/user/{user_id}")]
 async fn get_user_by_id(path: web::Path<u32>, state: web::Data<AppState<JsonDb>>) -> impl
 Responder {
- let result = state.db.get_user(UserId(path.into_inner())).await;
+  let result = state.db.get_user(UserId(path.into_inner())).await;
 
   match result {
     None => HttpResponse::NotFound().body("User was not found"),
@@ -39,21 +38,30 @@ Responder {
 }
 
 #[post("/user/{user_id}")]
-async fn create_user(path: web::Path<u32>, user_create: web::Json<UserCreate>) -> impl
-Responder {
-  let mut users = read_db();
+async fn create_user(path: web::Path<u32>, user_create: web::Json<UserCreate>, data:
+web::Data<AppState<JsonDb>>) -> impl Responder {
   let user_create = user_create.into_inner();
-  let user = User {
-    id: path.into_inner(),
-    age: user_create.age.to_owned(),
-    name: user_create.name.to_owned(),
-  };
 
-  users.push(user);
-  write_db(users);
+  let user = User::new(path.into_inner(), &user_create.name, user_create.age);
+
+  let result = data.db.set_user(user).await;
+
+  match result {
+    Ok(_) => {}
+    Err(err) => {
+      match err {
+        SetRecordError::InvalidInput => {
+          return HttpResponse::BadRequest();
+        }
+        SetRecordError::IoError => {
+          return HttpResponse::InternalServerError();
+        }
+      }
+    }
+  }
+
   HttpResponse::Created()
 }
-
 
 
 #[post("/echo")]
@@ -69,10 +77,8 @@ pub fn read_db() -> Vec<User> {
 }
 
 
-
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserCreate {
   name: String,
   age: u16,
 }
-

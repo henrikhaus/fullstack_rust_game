@@ -1,4 +1,8 @@
+use std::cmp::Ordering;
 use std::fs;
+use actix_web::{CustomizeResponder, HttpRequest, HttpResponse, Responder};
+use actix_web::http::header::TryIntoHeaderPair;
+use actix_web::http::StatusCode;
 use serde::{Deserialize, Serialize};
 
 pub struct UserId(pub u32);
@@ -8,6 +12,20 @@ pub struct User {
   id: u32,
   name: String,
   age: u16,
+}
+
+impl User {
+  pub fn new(id: u32, name: &str, age: u16) -> Self {
+    Self {
+      id,
+      name: name.to_string(),
+      age,
+    }
+  }
+
+  pub fn id(&self) -> u32 { self.id }
+  pub fn name(&self) -> String { self.name.to_string() }
+  pub fn age(&self) -> u16 { self.age }
 }
 
 pub enum SetRecordError {
