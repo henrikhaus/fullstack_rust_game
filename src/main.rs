@@ -1,7 +1,7 @@
 use std::fs;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use serde::{Deserialize, Serialize};
-use crate::db::{AppState, Db, JsonDb, SetRecordError, SetRecordResponse, User, UserId};
+use crate::db::{AppState, Db, JsonDb, SetRecordError, User, UserId};
 
 pub mod db;
 

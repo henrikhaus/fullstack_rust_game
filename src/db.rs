@@ -1,8 +1,8 @@
-use std::cmp::Ordering;
+
 use std::fs;
-use actix_web::{CustomizeResponder, HttpRequest, HttpResponse, Responder};
-use actix_web::http::header::TryIntoHeaderPair;
-use actix_web::http::StatusCode;
+
+
+
 use serde::{Deserialize, Serialize};
 
 pub struct UserId(pub u32);
@@ -112,7 +112,7 @@ impl Db for JsonDb {
     }
   }
 
-  async fn delete_user(&self, user_id: UserId) -> Result<(), DeleteRecordError> {
+  async fn delete_user(&self, _user_id: UserId) -> Result<(), DeleteRecordError> {
     todo!()
   }
 
