@@ -508,6 +508,7 @@ dependencies = [
  "actix",
  "actix-web",
  "serde",
+ "serde_json",
  "tokio",
 ]
 
