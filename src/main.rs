@@ -1,6 +1,11 @@
 use std::fs;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use serde::{Deserialize, Serialize};
+use crate::db::{AppState, Db, JsonDb, User, UserId};
+
+pub mod db;
+
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -10,6 +15,7 @@ async fn main() -> std::io::Result<()> {
         .service(echo)
         .service(get_user_by_id)
         .service(create_user)
+        .app_data(JsonDb::new("users.json"))
   })
       .bind(("127.0.0.1", 8080))?
       .run()
@@ -22,18 +28,14 @@ async fn hello() -> impl Responder {
 }
 
 #[get("/user/{user_id}")]
-async fn get_user_by_id(path: web::Path<String>) -> impl Responder {
-  let user_id = path.into_inner();
-  let users = read_db();
-  dbg!(&users);
-  let user = users.iter().find(|u| {
-    u.name == user_id
-  });
+async fn get_user_by_id(path: web::Path<u32>, state: web::Data<AppState<JsonDb>>) -> impl
+Responder {
+ let result = state.db.get_user(UserId(path.into_inner())).await;
 
-  return match user {
-    None => { HttpResponse::NotFound().body("The user was not found") }
-    Some(u) => { HttpResponse::Ok().json(u) }
-  };
+  match result {
+    None => HttpResponse::NotFound().body("User was not found"),
+    Some(user) => HttpResponse::Ok().json(user),
+  }
 }
 
 #[post("/user/{user_id}")]
@@ -52,10 +54,7 @@ Responder {
   HttpResponse::Created()
 }
 
-pub fn write_db(users: Vec<User>) {
-  let value = serde_json::to_string(&users).expect("Should be fine");
-  fs::write("users.json", value);
-}
+
 
 #[post("/echo")]
 async fn echo(req_body: String) -> impl Responder {
@@ -69,15 +68,11 @@ pub fn read_db() -> Vec<User> {
   serde_json::from_str(&contents).expect("Should be valid JSON")
 }
 
-#[derive(Deserialize, Serialize, Debug)]
-pub struct User {
-  id: u32,
-  name: String,
-  age: u16,
-}
+
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct UserCreate {
   name: String,
   age: u16,
 }
+
