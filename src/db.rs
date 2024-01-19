@@ -1,11 +1,10 @@
-
+use std::fmt::Debug;
 use std::fs;
-
 
 
 use serde::{Deserialize, Serialize};
 
-pub struct UserId(pub u32);
+pub struct Id(pub u32);
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct User {
@@ -28,32 +27,33 @@ impl User {
   pub fn age(&self) -> u16 { self.age }
 }
 
-pub enum SetRecordError {
-  InvalidInput,
+pub enum UpdateRecordError {
+  NotFound,
   IoError,
-}
-
-pub enum SetRecordResponse {
-  Created,
-  Updated,
 }
 
 pub enum DeleteRecordError {
   DoesNotExist
 }
 
-pub trait Db {
+pub enum CreateRecordError {
+  AlreadyExists,
+  IoError,
+}
+
+pub trait Repository<'a, T> where T: Deserialize<'a> + Serialize + Debug + Clone {
   /// Retrieves a user from the database
-  async fn get_user(&self, user_id: UserId) -> Option<User>;
+  async fn get(&self, id: Id) -> Option<T>;
 
   /// Sets a user in the database
-  async fn set_user(&self, user: User) -> Result<SetRecordResponse, SetRecordError>;
+  async fn create(&self, user: T) -> Result<(), CreateRecordError>;
+  async fn update(&self, user: T) -> Result<(), UpdateRecordError>;
 
   /// Deletes a user from the database
-  async fn delete_user(&self, user_id: UserId) -> Result<(), DeleteRecordError>;
+  async fn delete(&self, id: Id) -> Result<(), DeleteRecordError>;
 
   /// Retrieves all users from the database
-  async fn get_all_users(&self) -> Vec<User>;
+  async fn get_all(&self) -> Vec<T>;
 }
 
 
@@ -75,16 +75,14 @@ impl JsonDb {
 }
 
 
-
-pub struct AppState<T> where T : Db {
-  pub db: T,
+pub struct AppState<'a> {
+  pub user_repo: dyn Repository<'a, User>,
 }
 
 
-
-impl Db for JsonDb {
-  async fn get_user(&self, user_id: UserId) -> Option<User> {
-    let users = self.get_all_users().await;
+impl<'a> Repository<'a, User> for JsonDb {
+  async fn get(&self, user_id: Id) -> Option<User> {
+    let users = self.get_all().await;
 
     match users.iter().find(|&u| u.id == user_id.0) {
       None => None,
@@ -92,31 +90,47 @@ impl Db for JsonDb {
     }
   }
 
-  async fn set_user(&self, user: User) -> Result<SetRecordResponse, SetRecordError> {
-    let mut users: Vec<User> = self.get_all_users().await;
-    let response: SetRecordResponse;
+  async fn create(&self, user: User) -> Result<(), CreateRecordError> {
+    let mut users: Vec<User> = self.get_all().await;
 
-    if let Some(u) = users.iter_mut().find(|u| u.id == user.id) {
-      *u = user;
-      response = SetRecordResponse::Updated
-    } else {
+    if let None = users.iter_mut().find(|u| u.id == user.id) {
       users.push(user);
-      response = SetRecordResponse::Created
+    } else {
+      return Err(CreateRecordError::AlreadyExists);
     }
 
 
     let value = serde_json::to_string(&users).expect("Should be fine");
-    match fs::write(&self.file_name, value) {
-      Ok(_) => Ok(response),
-      Err(_) => Err(SetRecordError::IoError)
+    if let Err(_) = fs::write(&self.file_name, value) {
+      return Err(CreateRecordError::IoError);
     }
+
+    Ok(())
   }
 
-  async fn delete_user(&self, _user_id: UserId) -> Result<(), DeleteRecordError> {
+  async fn update(&self, user: User) -> Result<(), UpdateRecordError> {
+    let mut users: Vec<User> = self.get_all().await;
+
+    if let Some(u) = users.iter_mut().find(|u| u.id == user.id) {
+      *u = user;
+    } else {
+      return Err(UpdateRecordError::NotFound);
+    }
+
+
+    let value = serde_json::to_string(&users).expect("Should be fine");
+    if let Err(_) = fs::write(&self.file_name, value) {
+      return Err(UpdateRecordError::IoError);
+    }
+
+    Ok(())
+  }
+
+  async fn delete(&self, _user_id: Id) -> Result<(), DeleteRecordError> {
     todo!()
   }
 
-  async fn get_all_users(&self) -> Vec<User> {
+  async fn get_all(&self) -> Vec<User> {
     todo!()
   }
 }
