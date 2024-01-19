@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 actix = { version = "0.13.1", features = ["actix-macros", "actix_derive", "macros"]}
+actix-web = { version = "4.4.1" , features = ["default", "macros", "actix-macros"]}
 serde = { version = "1.0.195",  features = ["derive", "serde_derive", "default"]}
 tokio = { version = "1.35.1", features = ["full"]}
