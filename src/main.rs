@@ -1,8 +1,7 @@
-use std::fs;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use serde::{Deserialize, Serialize};
 use web::Data;
-use crate::db::{AppState, Repository, JsonDb, UpdateRecordError, User, Id, CreateRecordError};
+use crate::db::{AppState, Repository, JsonDb, User, Id, CreateRecordError};
 
 pub mod db;
 
@@ -13,7 +12,6 @@ async fn main() -> std::io::Result<()> {
     App::new()
         .service(hello)
         .service(get_user_by_id)
-        .service()
         .app_data(JsonDb::new("users.json"))
   })
       .bind(("127.0.0.1", 8080))?
