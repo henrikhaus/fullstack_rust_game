@@ -1,9 +1,9 @@
 use actix_web::{HttpResponse, Responder, web};
 use actix_web::web::ServiceConfig;
-use sqlx::{Error, PgPool};
+use sqlx::{PgPool};
 use crate::route::Controller;
 use crate::service::db::postgres::user::UserPgRepo;
-use crate::service::db::repo::{Repository, RepositoryError};
+use crate::service::db::repo::{Repository};
 
 
 pub struct UserController;
@@ -28,7 +28,7 @@ async fn list_users(pool: web::Data<PgPool>) -> impl Responder {
 
   if let Ok(users) = users {
     return HttpResponse::Ok().json(users);
-  } else if let Err(err) = users {
+  } else if let Err(_err) = users {
     return HttpResponse::InternalServerError().finish();
   }
 
