@@ -1,7 +1,7 @@
 use std::env;
 
 use actix_web::{web, App, HttpServer};
-use serde::{Deserialize};
+
 use web::Data;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;

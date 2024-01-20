@@ -1,11 +1,11 @@
 use std::str::FromStr;
 use actix_web::{HttpResponse, Responder, web};
 use actix_web::web::ServiceConfig;
-use sqlx::{Error, PgPool};
+use sqlx::{PgPool};
 use uuid::Uuid;
 use crate::route::Controller;
 use crate::service::db::postgres::user::UserPgRepo;
-use crate::service::db::repo::{NotFound, Repository, RepositoryError};
+use crate::service::db::repo::{Repository, RepositoryError};
 
 
 pub struct UserController;
@@ -54,10 +54,10 @@ async fn get_user(pool: web::Data<PgPool>, user_id: web::Path<String>) -> impl R
     }
     Err(err) => {
       match err {
-        RepositoryError::Action(a) => {
+        RepositoryError::Action(_a) => {
           HttpResponse::NotFound().finish()
         }
-        RepositoryError::Client(c) => {
+        RepositoryError::Client(_c) => {
           HttpResponse::InternalServerError().finish()
         }
       }
