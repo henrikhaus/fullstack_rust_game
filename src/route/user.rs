@@ -1,6 +1,9 @@
 use actix_web::{HttpResponse, Responder, web};
 use actix_web::web::ServiceConfig;
+use sqlx::{Error, PgPool};
 use crate::route::Controller;
+use crate::service::db::postgres::user::UserPgRepo;
+use crate::service::db::repo::{Repository, RepositoryError};
 
 
 pub struct UserController;
@@ -18,16 +21,18 @@ impl Controller for UserController {
   }
 }
 
-async fn list_users() -> impl Responder {
-  // let repo = UserRedisRepo::new(redis.into_inner());
-  // let users = repo.get_all().await;
-  //
-  // if let Some(u) = users {
-  //   return HttpResponse::Ok().json(u);
-  // }
-  //
-  // return HttpResponse::NoContent().body("");
-  HttpResponse::Ok()
+async fn list_users(pool: web::Data<PgPool>) -> impl Responder {
+  let user_repo = UserPgRepo::new(pool.get_ref());
+
+  let users = user_repo.get_all().await;
+
+  if let Ok(users) = users {
+    return HttpResponse::Ok().json(users);
+  } else if let Err(err) = users {
+    return HttpResponse::InternalServerError().finish();
+  }
+
+  unreachable!()
 }
 
 async fn get_user() -> impl Responder {
