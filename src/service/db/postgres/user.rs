@@ -1,4 +1,4 @@
-use bb8::RunError;
+
 use sqlx::{PgPool};
 use sqlx::types::Uuid;
 use crate::service::db::models::user::User;
@@ -24,19 +24,19 @@ impl<'a> Repository<'a, User, sqlx::Error> for UserPgRepo<'a> {
     }
   }
 
-  async fn get_by_id(&self, id: Uuid) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
+  async fn get_by_id(&self, _id: Uuid) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
     todo!()
   }
 
-  async fn create(&self, value: User) -> Result<User, RepositoryError<AlreadyExists, sqlx::Error>> {
+  async fn create(&self, _value: User) -> Result<User, RepositoryError<AlreadyExists, sqlx::Error>> {
     todo!()
   }
 
-  async fn update(&self, value: User) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
+  async fn update(&self, _value: User) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
     todo!()
   }
 
-  async fn delete(&self, id: Uuid) -> Result<(), RepositoryError<NotFound, sqlx::Error>> {
+  async fn delete(&self, _id: Uuid) -> Result<(), RepositoryError<NotFound, sqlx::Error>> {
     todo!()
   }
 }

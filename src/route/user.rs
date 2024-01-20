@@ -1,7 +1,7 @@
 use actix_web::{HttpResponse, Responder, web};
 use actix_web::web::ServiceConfig;
 use crate::route::Controller;
-use crate::service::db::repo::Repository;
+
 
 pub struct UserController;
 

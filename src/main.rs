@@ -1,13 +1,13 @@
 use std::env;
-use log::{debug, error, log_enabled, info, Level};
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use serde::{Deserialize, Serialize};
+
+use actix_web::{web, App, HttpServer};
+use serde::{Deserialize};
 use web::Data;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use crate::route::Controller;
 use crate::route::user::UserController;
-use crate::service::db::postgres::PgService;
+
 
 pub mod service;
 pub mod state;

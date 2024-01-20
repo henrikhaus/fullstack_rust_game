@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+
 use sqlx::types::Uuid;
 
 /// The record was not found, making the action invalid
