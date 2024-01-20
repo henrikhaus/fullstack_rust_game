@@ -27,7 +27,7 @@ async fn main() -> std::io::Result<()> {
       .await
       .expect("FATAL: Failed to create pool");
 
-  // Create a server, and listen on the speicified port
+  // Create a server, and listen on the specified port
   HttpServer::new(move || {
     App::new()
         .app_data(Data::new(db_pool.clone())) // adds connection for each thread
