@@ -30,7 +30,19 @@ impl<'a> Repository<'a, User, sqlx::Error> for UserPgRepo<'a> {
   }
 
   async fn get_by_id(&self, _id: Uuid) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
-    todo!()
+    let user = sqlx::query_as!(
+      User, "SELECT * FROM \"user\" WHERE id = $1", _id)
+        .fetch_optional(self.pool).await;
+
+    match user {
+      Ok(maybe_user) => {
+        match maybe_user {
+          None => Err(RepositoryError::Action(NotFound)),
+          Some(user) => Ok(user),
+        }
+      }
+      Err(err) => Err(RepositoryError::Client(err)),
+    }
   }
 
   async fn create(&self, _value: User) -> Result<User, RepositoryError<AlreadyExists, sqlx::Error>> {
