@@ -10,10 +10,10 @@ pub struct User {
 }
 
 impl User {
-  pub fn new(id: Uuid, name: &str, coins: i64) -> Self {
+  pub fn new(username: &str, coins: i64) -> Self {
     Self {
-      id,
-      username: name.to_string(),
+      id: Uuid::new_v4(),
+      username: username.to_string(),
       coins,
     }
   }

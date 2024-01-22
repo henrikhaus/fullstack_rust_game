@@ -6,11 +6,10 @@ use web::Data;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use crate::route::Controller;
-use crate::route::user::UserController;
+use crate::route::user::{user_scope, UserController};
 
 
 pub mod service;
-pub mod state;
 pub mod route;
 
 
@@ -31,7 +30,7 @@ async fn main() -> std::io::Result<()> {
   HttpServer::new(move || {
     App::new()
         .app_data(Data::new(db_pool.clone())) // adds connection for each thread
-        .configure(UserController::configure)
+        .service(user_scope())
   })
       .bind(get_url_env_vars())?
       .run()

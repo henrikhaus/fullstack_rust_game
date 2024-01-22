@@ -1,22 +1,18 @@
-use sqlx::{PgPool};
 use sqlx::types::Uuid;
 use crate::service::db::models::user::User;
 use crate::service::db::repo::{AlreadyExists, NotFound, Repository, RepositoryError};
 
 pub struct UserPgRepo<'a> {
-  pool: &'a PgPool,
+  pool: &'a sqlx::PgPool,
 }
 
 impl<'a> UserPgRepo<'a> {
-  pub fn new(pool: &'a PgPool) -> Self {
+  pub fn new(pool: &'a sqlx::PgPool) -> Self {
     Self {
       pool
     }
   }
 }
-
-const TABLE_NAME: &str = "user";
-
 
 impl<'a> Repository<'a, User, sqlx::Error> for UserPgRepo<'a> {
   async fn get_all(&self) -> Result<Vec<User>, RepositoryError<(), sqlx::Error>> {
@@ -45,8 +41,20 @@ impl<'a> Repository<'a, User, sqlx::Error> for UserPgRepo<'a> {
     }
   }
 
-  async fn create(&self, _value: User) -> Result<User, RepositoryError<AlreadyExists, sqlx::Error>> {
-    todo!()
+  async fn create(&self, value: User) -> Result<User, RepositoryError<AlreadyExists, sqlx::Error>> {
+    let username = value.username;
+    let coins = value.coins;
+
+    let result = sqlx::query_as!(User,
+      "INSERT INTO \"user\" (username, coins)\
+      VALUES ($1, $2)\
+      RETURNING id, username, coins",
+      username, coins).fetch_one(self.pool).await;
+
+    match result {
+      Ok(user) => Ok(user),
+      Err(err) => Err(RepositoryError::Client(err)),
+    }
   }
 
   async fn update(&self, _value: User) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {

@@ -1,4 +1,4 @@
 pub mod repo;
 pub mod postgres;
-mod models;
+pub mod models;
 

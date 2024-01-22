@@ -1,11 +1,13 @@
 use std::str::FromStr;
-use actix_web::{HttpResponse, Responder, web};
+use actix_web::{HttpResponse, Resource, Responder, Scope, web};
 use actix_web::web::ServiceConfig;
-use sqlx::{PgPool};
+use serde::Deserialize;
+use sqlx::{Error, PgPool};
 use uuid::Uuid;
 use crate::route::Controller;
+use crate::service::db::models::user::User;
 use crate::service::db::postgres::user::UserPgRepo;
-use crate::service::db::repo::{Repository, RepositoryError};
+use crate::service::db::repo::{AlreadyExists, Repository, RepositoryError};
 
 
 pub struct UserController;
@@ -13,14 +15,28 @@ pub struct UserController;
 const PATH: &str = "/user";
 const PATH_ID: &str = "/user/{user_id}";
 
-impl Controller for UserController {
-  fn configure(cfg: &mut ServiceConfig) {
-    cfg.route(PATH, web::get().to(list_users))
-        .route(PATH, web::post().to(create_user))
-        .route(PATH_ID, web::get().to(get_user))
-        .route(PATH_ID, web::put().to(update_user))
-        .route(PATH_ID, web::delete().to(delete_user));
-  }
+/// Creates a scoped resource for all user endpoints,
+/// to be used in routing
+///
+/// #### users
+/// - GET /user
+/// - POST /user
+///
+/// #### users_detail
+/// - GET /user/{user_id}
+/// - PUT /user/{user_id}
+/// - DELETE /user/{user_id}
+pub fn user_scope() -> Scope {
+  web::scope("/user")
+      .service(web::resource("")
+          .name("users")
+          .get(list_users)
+          .post(create_user))
+      .service(web::resource("/{user_id}")
+          .name("user_detail")
+          .get(get_user)
+          .put(update_user)
+          .delete(delete_user))
 }
 
 async fn list_users(pool: web::Data<PgPool>) -> impl Responder {
@@ -28,13 +44,10 @@ async fn list_users(pool: web::Data<PgPool>) -> impl Responder {
 
   let users = user_repo.get_all().await;
 
-  if let Ok(users) = users {
-    return HttpResponse::Ok().json(users);
-  } else if let Err(_err) = users {
-    return HttpResponse::InternalServerError().finish();
+  match users {
+    Ok(users) => HttpResponse::Ok().json(users),
+    Err(_err) => HttpResponse::InternalServerError().finish(),
   }
-
-  unreachable!()
 }
 
 async fn get_user(pool: web::Data<PgPool>, user_id: web::Path<String>) -> impl Responder {
@@ -65,8 +78,33 @@ async fn get_user(pool: web::Data<PgPool>, user_id: web::Path<String>) -> impl R
   }
 }
 
-async fn create_user() -> impl Responder {
-  HttpResponse::Ok()
+
+#[derive(Deserialize)]
+struct PostUserReqBody {
+  username: String,
+}
+
+async fn create_user(body: web::Json<PostUserReqBody>, pool: web::Data<PgPool>) -> impl Responder {
+  let username = &body.username;
+  let user = User::new(username, 0);
+
+  let result = UserPgRepo::new(pool.get_ref()).create(user).await;
+
+  match result {
+    Ok(user) => {
+      HttpResponse::Created().json(user)
+    }
+    Err(err) => {
+      match err {
+        RepositoryError::Action(_) => {
+          HttpResponse::Conflict().body("User with that username already exists")
+        }
+        RepositoryError::Client(_) => {
+          HttpResponse::InternalServerError().finish()
+        }
+      }
+    }
+  }
 }
 
 async fn update_user() -> impl Responder {
