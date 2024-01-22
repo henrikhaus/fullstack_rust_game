@@ -1,13 +1,14 @@
 use sqlx::types::Uuid;
 use crate::service::db::models::user::User;
+use crate::service::db::postgres::PgRepo;
 use crate::service::db::repo::{AlreadyExists, NotFound, Repository, RepositoryError};
 
 pub struct UserPgRepo<'a> {
   pool: &'a sqlx::PgPool,
 }
 
-impl<'a> UserPgRepo<'a> {
-  pub fn new(pool: &'a sqlx::PgPool) -> Self {
+impl<'a> PgRepo<'a, User> for UserPgRepo<'a> {
+  fn new(pool: &'a sqlx::PgPool) -> Self {
     Self {
       pool
     }

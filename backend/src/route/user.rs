@@ -6,7 +6,7 @@ use sqlx::{Error, PgPool};
 use uuid::Uuid;
 use crate::route::Controller;
 use crate::service::db::models::user::User;
-use crate::service::db::postgres::user::UserPgRepo;
+use crate::service::db::postgres::user::{UserPgRepo};
 use crate::service::db::repo::{AlreadyExists, Repository, RepositoryError};
 
 
