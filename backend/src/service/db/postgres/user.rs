@@ -15,10 +15,10 @@ impl<'pool> PgRepo<'pool> for UserPgRepo<'pool> {
 }
 
 impl<'pool> Repository for UserPgRepo<'pool> {
-  type Data = User;
-  type ClientError = sqlx::Error;
+    type Data = User;
+    type ClientError = sqlx::Error;
 
-  async fn get_all(&self) -> Result<Vec<User>, RepositoryError<(), sqlx::Error>> {
+    async fn get_all(&self) -> Result<Vec<User>, RepositoryError<(), sqlx::Error>> {
         let users = sqlx::query_as::<Postgres, User>("SELECT * FROM \"user\"")
             .fetch_all(self.pool)
             .await;
@@ -29,14 +29,11 @@ impl<'pool> Repository for UserPgRepo<'pool> {
         }
     }
 
-    async fn get_by_id(
-      &self,
-      hello: Uuid,
-    ) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
-        let user =
-            sqlx::query_as::<Postgres, User>("SELECT * FROM \"user\" WHERE id = $1").bind(hello)
-                .fetch_optional(self.pool)
-                .await;
+    async fn get_by_id(&self, hello: Uuid) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
+        let user = sqlx::query_as::<Postgres, User>("SELECT * FROM \"user\" WHERE id = $1")
+            .bind(hello)
+            .fetch_optional(self.pool)
+            .await;
 
         match user {
             Ok(maybe_user) => match maybe_user {
@@ -67,10 +64,7 @@ impl<'pool> Repository for UserPgRepo<'pool> {
         }
     }
 
-    async fn update(
-        &self,
-        _value: User,
-    ) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
+    async fn update(&self, _value: User) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
         todo!()
     }
 

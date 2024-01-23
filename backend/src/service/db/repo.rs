@@ -1,5 +1,5 @@
-use actix_web::{HttpRequest, HttpResponse, Responder};
 use actix_web::body::BoxBody;
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use serde::Serialize;
 use sqlx::types::Uuid;
 
@@ -16,28 +16,23 @@ pub enum RepositoryError<T, C> {
 
 #[derive(Serialize)]
 struct ErrorResponse {
-  message: &'static str
+    message: &'static str,
 }
 
 impl<T, C> Responder for RepositoryError<T, C> {
-  type Body = BoxBody;
+    type Body = BoxBody;
 
-  fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
-     match self {
-      RepositoryError::Action(_) => {
-        HttpResponse::BadRequest().json(ErrorResponse {
-          message: "Bad Request"
-        })
-      }
-      RepositoryError::Client(_) => {
-        HttpResponse::InternalServerError().json(ErrorResponse {
-          message: "Internal Server Error"
-        })
-      }
+    fn respond_to(self, _req: &HttpRequest) -> HttpResponse<Self::Body> {
+        match self {
+            RepositoryError::Action(_) => HttpResponse::BadRequest().json(ErrorResponse {
+                message: "Bad Request",
+            }),
+            RepositoryError::Client(_) => HttpResponse::InternalServerError().json(ErrorResponse {
+                message: "Internal Server Error",
+            }),
+        }
     }
-  }
 }
-
 
 pub trait Repository {
     type Data;

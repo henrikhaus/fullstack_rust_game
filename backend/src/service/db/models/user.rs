@@ -18,8 +18,12 @@ impl User {
         }
     }
 
-    pub fn id(&self) -> &Uuid { &self.id }
-    pub fn name(&self) -> &str { &self.username }
+    pub fn id(&self) -> &Uuid {
+        &self.id
+    }
+    pub fn name(&self) -> &str {
+        &self.username
+    }
     pub fn coins(&self) -> i64 {
         self.coins
     }
