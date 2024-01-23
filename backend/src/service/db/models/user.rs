@@ -10,21 +10,26 @@ pub struct User {
 }
 
 impl User {
-    pub fn new(username: String, coins: i64) -> Self {
+    pub fn new(username: String, coins: u64) -> Self {
         Self {
             id: Uuid::new_v4(),
             username,
-            coins,
+            coins: coins.try_into().unwrap_or(i64::MAX),
         }
     }
 
+    /// The row id in the database
     pub fn id(&self) -> &Uuid {
         &self.id
     }
-    pub fn name(&self) -> &str {
+
+    /// A unique username for this profile
+    pub fn username(&self) -> &str {
         &self.username
     }
-    pub fn coins(&self) -> i64 {
-        self.coins
+
+    /// The number of coins this user has
+    pub fn coins(&self) -> u64 {
+        self.coins as u64
     }
 }

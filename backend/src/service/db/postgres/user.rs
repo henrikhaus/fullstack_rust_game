@@ -64,11 +64,41 @@ impl<'pool> Repository for UserPgRepo<'pool> {
         }
     }
 
-    async fn update(&self, _value: User) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
-        todo!()
+    async fn update(&self, value: User) -> Result<User, RepositoryError<NotFound, sqlx::Error>> {
+        let user = sqlx::query_as::<Postgres, User>(
+            "UPDATE \"user\"
+                SET username = $1, coins = $2
+                WHERE id = $3
+                ",
+        )
+        .bind(value.username())
+        .bind(value.coins() as i64)
+        .bind(value.id())
+        .fetch_optional(self.pool)
+        .await;
+
+        match user {
+            Ok(maybe_user) => match maybe_user {
+                Some(user) => Ok(user),
+                None => Err(RepositoryError::Action(NotFound)),
+            },
+            Err(err) => Err(RepositoryError::Client(err)),
+        }
     }
 
-    async fn delete(&self, _id: Uuid) -> Result<(), RepositoryError<NotFound, sqlx::Error>> {
-        todo!()
+    async fn delete(&self, id: Uuid) -> Result<(), RepositoryError<NotFound, sqlx::Error>> {
+        let result = sqlx::query(
+            "DELETE \"user\"
+            WHERE id = $1
+            ",
+        )
+        .bind(id)
+        .execute(self.pool)
+        .await;
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(RepositoryError::Client(err)),
+        }
     }
 }
