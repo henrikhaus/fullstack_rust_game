@@ -19,7 +19,7 @@ impl<'pool> Repository for UserPgRepo<'pool> {
     type ClientError = sqlx::Error;
 
     async fn get_all(&self) -> Result<Vec<User>, RepositoryError<(), sqlx::Error>> {
-        let users = sqlx::query_as::<Postgres, User>("SELECT * FROM \"user\"")
+        let users= sqlx::query_as::<Postgres, User>("SELECT * FROM \"user\"")
             .fetch_all(self.pool)
             .await;
 
