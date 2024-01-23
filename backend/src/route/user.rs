@@ -7,7 +7,7 @@ use actix_web::{web, HttpResponse, Responder, Scope};
 use serde::Deserialize;
 use sqlx::PgPool;
 use std::str::FromStr;
-use uuid::{Error, Uuid};
+use uuid::{Uuid};
 
 pub struct UserController;
 
