@@ -1,15 +1,13 @@
-use crate::route::Controller;
 use crate::service::db::models::user::User;
 use crate::service::db::postgres::user::UserPgRepo;
-use crate::service::db::repo::{AlreadyExists, Repository, RepositoryError};
-use actix_web::web::ServiceConfig;
-use actix_web::{web, HttpResponse, Resource, Responder, Scope};
-use serde::Deserialize;
-use sqlx::{Error, PgPool};
-use std::str::FromStr;
-use uuid::Uuid;
+use crate::service::db::repo::{Repository, RepositoryError};
+
 use crate::service::db::postgres::PgRepo;
-use crate::service::db::postgres::poker_game::{PokerGame, PokerGamePgRepo};
+use actix_web::{web, HttpResponse, Responder, Scope};
+use serde::Deserialize;
+use sqlx::PgPool;
+use std::str::FromStr;
+use uuid::{Error, Uuid};
 
 pub struct UserController;
 
@@ -57,22 +55,24 @@ async fn list_users(pool: web::Data<PgPool>) -> impl Responder {
 
 async fn get_user(pool: web::Data<PgPool>, user_id: web::Path<String>) -> impl Responder {
   let user_id = Uuid::from_str(&user_id.into_inner());
-  if let Err(_) = user_id {
-    return HttpResponse::BadRequest()
-        .body("Invalid user_id format. Should be a UUID v4 string.");
-  }
-  let user_id = user_id.unwrap();
 
-  let user_repo = UserPgRepo::new(pool.get_ref());
+  match user_id {
+    Ok(user_id) => {
+      let user_repo = UserPgRepo::new(pool.get_ref());
+      let user = user_repo.get_by_id(user_id).await;
 
-  let user = user_repo.get_by_id(user_id).await;
-
-  match user {
-    Ok(user) => HttpResponse::Ok().json(user),
-    Err(err) => match err {
-      RepositoryError::Action(_a) => HttpResponse::NotFound().finish(),
-      RepositoryError::Client(_c) => HttpResponse::InternalServerError().finish(),
-    },
+      match user {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(err) => match err {
+          RepositoryError::Action(_a) => HttpResponse::NotFound().finish(),
+          RepositoryError::Client(_c) => HttpResponse::InternalServerError().finish(),
+        },
+      }
+    }
+    Err(_) => {
+      return HttpResponse::BadRequest()
+          .body("Invalid user_id format. Should be a UUID v4 string.");
+    }
   }
 }
 
@@ -82,8 +82,7 @@ struct PostUserReqBody {
 }
 
 async fn create_user(body: web::Json<PostUserReqBody>, pool: web::Data<PgPool>) -> impl Responder {
-  let username = &body.username;
-  let user = User::new(username, 0);
+  let user = User::new(body.into_inner().username, 0);
 
   let result = UserPgRepo::new(pool.get_ref()).create(user).await;
 
@@ -101,10 +100,14 @@ async fn create_user(body: web::Json<PostUserReqBody>, pool: web::Data<PgPool>) 
 #[derive(Deserialize)]
 struct PutUserRequestBody {
   username: String,
-  coins: i64
+  coins: i64,
 }
 
-async fn update_user(pool: web::Data<PgPool>, user_id: web::Path<String>, body: web::Json<PutUserRequestBody>) -> impl Responder {
+async fn update_user(
+  _pool: web::Data<PgPool>,
+  _user_id: web::Path<String>,
+  _body: web::Json<PutUserRequestBody>,
+) -> impl Responder {
   HttpResponse::Ok()
 }
 

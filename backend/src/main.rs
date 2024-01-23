@@ -2,8 +2,8 @@ use std::env;
 
 use actix_web::{web, App, HttpServer};
 
-use crate::route::user::{user_scope, UserController};
-use crate::route::Controller;
+use crate::route::user::user_scope;
+
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use web::Data;
