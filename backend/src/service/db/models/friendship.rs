@@ -22,7 +22,7 @@ impl Friendship {
             id: Uuid::new_v4(),
             requester,
             responder,
-            status: status.into()
+            status: status.into(),
         }
     }
 
@@ -43,10 +43,11 @@ impl Friendship {
 
     /// The status of this friendship
     pub fn status(&self) -> Status {
-        self.status.as_ref().try_into().expect("Invalid enum value")
+        self.status.as_str().try_into().expect("Invalid enum value")
     }
 }
 
+#[derive(Debug)]
 struct InvalidVariant;
 
 impl TryFrom<&str> for Status {
@@ -57,7 +58,7 @@ impl TryFrom<&str> for Status {
             "active" => Ok(Status::Active),
             "pending" => Ok(Status::Pending),
             "blocked" => Ok(Status::Blocked),
-            _ => Err(Self::Error)
+            _ => Err(InvalidVariant),
         }
     }
 }
@@ -67,7 +68,17 @@ impl From<Status> for &str {
         match value {
             Status::Active => "active",
             Status::Pending => "pending",
-            Status::Blocked => "blocked"
+            Status::Blocked => "blocked",
+        }
+    }
+}
+
+impl From<Status> for String {
+    fn from(value: Status) -> String {
+        match value {
+            Status::Active => "active".to_string(),
+            Status::Pending => "pending".to_string(),
+            Status::Blocked => "blocked".to_string(),
         }
     }
 }

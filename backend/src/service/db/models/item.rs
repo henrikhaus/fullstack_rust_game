@@ -1,7 +1,7 @@
-use std::fmt::Debug;
 use serde::Serialize;
 use sqlx::types::Uuid;
 use sqlx::{Error, FromRow};
+use std::fmt::Debug;
 
 #[derive(FromRow, Debug, Clone, Serialize)]
 pub struct Item {
@@ -32,7 +32,15 @@ pub enum ItemRarity {
 }
 
 impl Item {
-    pub fn new(name: String, description: String, owner_id: Uuid, item_type: ItemType, item_rarity: ItemRarity, season: i32, price: Option<i64>) -> Self {
+    pub fn new(
+        name: String,
+        description: String,
+        owner_id: Uuid,
+        item_type: ItemType,
+        item_rarity: ItemRarity,
+        season: i32,
+        price: Option<i64>,
+    ) -> Self {
         Self {
             id: Uuid::new_v4(),
             name,
@@ -70,7 +78,6 @@ impl Item {
         self.item_type.try_into().expect("Invalid enum value")
     }
 
-
     /// The item rarity
     pub fn item_rarity(&self) -> ItemRarity {
         self.item_rarity.try_into().expect("Invalid enum value")
@@ -98,7 +105,7 @@ impl TryFrom<&str> for ItemType {
             "avatar" => Ok(ItemType::Avatar),
             "emote" => Ok(ItemType::Emote),
             "effect" => Ok(ItemType::Effect),
-            _ => Err(Self::Error)
+            _ => Err(Self::Error),
         }
     }
 }
@@ -114,7 +121,7 @@ impl TryFrom<&str> for ItemRarity {
             "epic" => Ok(ItemRarity::Epic),
             "legendary" => Ok(ItemRarity::Legendary),
             "divine" => Ok(ItemRarity::Divine),
-            _ => Err(Self::Error)
+            _ => Err(Self::Error),
         }
     }
 }

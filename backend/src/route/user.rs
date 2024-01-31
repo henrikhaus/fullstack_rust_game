@@ -82,19 +82,18 @@ struct PostUserReqBody {
 }
 
 async fn create_user(body: web::Json<PostUserReqBody>, pool: web::Data<PgPool>) -> impl Responder {
-    let user = User::new(body.into_inner().username, 0);
-
-    let result = UserPgRepo::new(pool.get_ref()).create(user).await;
-
-    match result {
-        Ok(user) => HttpResponse::Created().json(user),
-        Err(err) => match err {
-            RepositoryError::Action(_) => {
-                HttpResponse::Conflict().body("User with that username already exists")
-            }
-            RepositoryError::Client(_) => HttpResponse::InternalServerError().finish(),
-        },
-    }
+    // let user = User::new(body.into_inner().username, 0);
+    // let result = UserPgRepo::new(pool.get_ref()).create(user).await;
+    // match result {
+    //     Ok(user) => HttpResponse::Created().json(user),
+    //     Err(err) => match err {
+    //         RepositoryError::Action(_) => {
+    //             HttpResponse::Conflict().body("User with that username already exists")
+    //         }
+    //         RepositoryError::Client(_) => HttpResponse::InternalServerError().finish(),
+    //     },
+    // }
+    HttpResponse::Ok()
 }
 
 #[derive(Deserialize)]
