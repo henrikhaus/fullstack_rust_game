@@ -4,17 +4,23 @@ use sqlx::FromRow;
 
 #[derive(FromRow, Debug, Clone, Serialize)]
 pub struct User {
-    pub id: Uuid,
-    pub username: String,
-    pub coins: i64,
+    id: Uuid,
+    username: String,
+    chips: i64,
+    premium_chips: i64,
+    xp: i64,
+    rank: i32,
 }
 
 impl User {
-    pub fn new(username: String, coins: u64) -> Self {
+    pub fn new(username: String, chips: i64, premium_chips: i64, xp: i64, rank: i32) -> Self {
         Self {
             id: Uuid::new_v4(),
             username,
-            coins: coins.try_into().unwrap_or(i64::MAX),
+            chips,
+            premium_chips,
+            xp,
+            rank,
         }
     }
 
@@ -29,7 +35,22 @@ impl User {
     }
 
     /// The number of coins this user has
-    pub fn coins(&self) -> u64 {
-        self.coins as u64
+    pub fn chips(&self) -> i64 {
+        self.chips
+    }
+
+    /// The number of premium chips this user has
+    pub fn premium_chips(&self) -> i64 {
+        self.premium_chips
+    }
+
+    /// The amount of xp this user has
+    pub fn xp(&self) -> i64 {
+        self.xp
+    }
+
+    /// The rank this user has
+    pub fn rank(&self) -> i32 {
+        self.rank
     }
 }

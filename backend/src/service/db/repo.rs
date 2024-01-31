@@ -72,8 +72,8 @@ struct GamePgRepo<'pool> {
 
 impl Repository for GamePgRepo {
   type Data = ;
-  type ClientError = sqlx::Error;
 
+  type ClientError = sqlx::Error;
   async fn get_all(&self) -> Result<Vec<Self::Data>, RepositoryError<(), Self::ClientError>> {
     todo!()
   }

@@ -1,5 +1,5 @@
 use crate::service::db::models::user::User;
-use crate::service::db::postgres::PgRepo;
+use crate::service::db::postgres::{IntoRepoResult, PgRepo};
 use crate::service::db::repo::{AlreadyExists, NotFound, Repository, RepositoryError};
 use sqlx::types::Uuid;
 use sqlx::Postgres;
@@ -35,13 +35,7 @@ impl<'pool> Repository for UserPgRepo<'pool> {
             .fetch_optional(self.pool)
             .await;
 
-        match user {
-            Ok(maybe_user) => match maybe_user {
-                None => Err(RepositoryError::Action(NotFound)),
-                Some(user) => Ok(user),
-            },
-            Err(err) => Err(RepositoryError::Client(err)),
-        }
+        user.into_repo_result()
     }
 
     async fn create(
@@ -54,7 +48,7 @@ impl<'pool> Repository for UserPgRepo<'pool> {
                 RETURNING id, username, coins",
         )
         .bind(value.username)
-        .bind(value.coins)
+        .bind(value.chips)
         .fetch_one(self.pool)
         .await;
 
@@ -72,7 +66,7 @@ impl<'pool> Repository for UserPgRepo<'pool> {
                 ",
         )
         .bind(value.username())
-        .bind(value.coins() as i64)
+        .bind(value.chips() as i64)
         .bind(value.id())
         .fetch_optional(self.pool)
         .await;
